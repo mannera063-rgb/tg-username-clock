@@ -1,16 +1,21 @@
-import os, sys, asyncio
+import os, sys, asyncio, base64
 from datetime import datetime
-
-print("--- СТАРТ СКРИПТА В ОБЛАКЕ ---")
-
-# Проверяем, где лежат файлы официального Телеграма
-# Если они лежат прямо в src, opentele их прочитает из текущей папки '.'
-os.system("pip install opentele==1.1.1 telethon==1.24.0 PyQt5-sip")
-
-from opentele.td import TDesktop
 from telethon import TelegramClient
+from telethon.sessions import StringSession
 
-async def update_clock(client):
+session_str = os.environ.get('TELETHON_SESSION', '')
+api_id = 36021864
+api_hash = "d3039584b397c52fe40006762a0045ff"
+
+if not session_str:
+    print("❌ Ошибка: Переменная TELETHON_SESSION пустая в настройках Render!")
+    sys.exit(1)
+
+# Раскодируем нашу строку обратно в имя сессии
+session_name = base64.b64decode(session_str.encode()).decode()
+client = TelegramClient(f'src/{session_name}.session', api_id, api_hash)
+
+async def update_clock():
     while True:
         try:
             current_time = datetime.now().strftime("<%H:%M>")
@@ -21,20 +26,12 @@ async def update_clock(client):
         await asyncio.sleep(60)
 
 async def main():
-    try:
-        # Инициализируем сессию напрямую из распакованных файлов в папке src
-        td = TDesktop(".")
-        client = await td.ToTelethon(session="session_name.session", flag=None)
-        await client.connect()
-        
-        if not await client.is_user_authorized():
-            print("❌ Ошибка: Официальная сессия не авторизована!")
-            return
-            
-        print("🚀 Официальные часы успешно запущены в облаке!")
-        await update_clock(client)
-    except Exception as e:
-        print(f"Критическая ошибка запуска: {e}")
+    await client.connect()
+    if not await client.is_user_authorized():
+        print("❌ Ошибка: Файл сессии не авторизован сервером Telegram!")
+        return
+    print("🚀 Официальные часы успешно запущены в облаке!")
+    await update_clock()
 
 if __name__ == '__main__':
     from telethon import functions
