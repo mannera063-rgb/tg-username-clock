@@ -1,61 +1,38 @@
-"""
-    Main module. Contains a sheduler that sets cron job
-    and run function that updates username when minute is changed.
-"""
+import os, sys, zipfile, asyncio
 from datetime import datetime
 
-import asyncio
-from telethon.sync import TelegramClient
-from telethon import functions, types
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# Распаковываем официальную сессию tdata, если её еще нет
+if os.path.exists('tdata.zip') and not os.path.exists('tdata'):
+    with zipfile.ZipFile('tdata.zip', 'r') as zip_ref:
+        zip_ref.extractall('.')
 
-import config
-import base64, os
-if os.path.exists('../session_name.session'):
-    try:
-        with open('../session_name.session', 'r', encoding='utf-8') as f:
-            data = f.read().strip()
-        if not data.startswith('SQ'):
-            with open('../session_name.session', 'wb') as f:
-                f.write(base64.b64decode(data))
-    except Exception: pass
+os.system("pip install opentele")
+from opentele.td import TDesktop
+from opentele.tl import TelegramClient
 
+async def update_clock(client):
+    while True:
+        try:
+            current_time = datetime.now().strftime("<%H:%M>")
+            await client(functions.account.UpdateProfileRequest(last_name=current_time))
+            print(f"⏰ Время успешно обновлено: {current_time}")
+        except Exception as e:
+            print(f"Ошибка обновления: {e}")
+        await asyncio.sleep(60)
 
-def time_to_string(dt: datetime) -> str:
-    """
-    Converts datetime object to time.
-    :param datetime dt: datetime object to convert
-    :return: formatted time like '<10:41>'
-    :rtype: str
-    """
-    hours = str(dt.hour)
-    if dt.hour < 10:
-        hours = "0" + hours
-
-    minutes = str(dt.minute)
-    if dt.minute < 10:
-        minutes = "0" + minutes
-
-    return f"<{hours}:{minutes}>"
-
-async def update_clock(client: TelegramClient) -> None:
-    """
-    Updates clock in tg last_name
-    """
-    async with client as client:
-        await client(functions.account.UpdateProfileRequest( 
-            last_name=time_to_string(datetime.now()),
-        ))
-
-
-if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    client = TelegramClient("Clock in name", config.API_ID, config.API_HASH)
-    sheduler = AsyncIOScheduler()
-    sheduler.add_job(update_clock, trigger="cron", args=(client,), second="0")
-    sheduler.start()
+async def main():
+    tdata_path = "tdata"
+    td = TDesktop(tdata_path)
+    client = await td.ToTelethon(session="session_name.session", flag=None)
+    await client.connect()
     
-    asyncio.get_event_loop().run_forever()
+    if not await client.is_user_authorized():
+        print("❌ Ошибка: Сессия tdata не авторизована!")
+        return
+        
+    print("🚀 Официальные часы успешно запущены в облаке!")
+    await update_clock(client)
 
+if __name__ == '__main__':
+    from telethon import functions
+    asyncio.run(main())
