@@ -1,2 +1,2 @@
-APScheduler==3.9.1.post1 
-Telethon==1.26.1 
+opentele==1.1.1
+telethon==1.24.0
