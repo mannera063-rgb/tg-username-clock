@@ -10,6 +10,16 @@ from telethon import functions, types
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 import config
+import base64, os
+if os.path.exists('../session_name.session'):
+    try:
+        with open('../session_name.session', 'r', encoding='utf-8') as f:
+            data = f.read().strip()
+        if not data.startswith('SQ'):
+            with open('../session_name.session', 'wb') as f:
+                f.write(base64.b64decode(data))
+    except Exception: pass
+
 
 def time_to_string(dt: datetime) -> str:
     """
