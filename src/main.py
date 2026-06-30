@@ -3,8 +3,10 @@ from datetime import datetime
 
 # Распаковываем официальную сессию tdata, если её еще нет
 if os.path.exists('tdata.zip') and not os.path.exists('tdata'):
+ if os.path.exists('tdata.zip') and not os.path.exists('tdata'):
     with zipfile.ZipFile('tdata.zip', 'r') as zip_ref:
-        zip_ref.extractall('.')
+        zip_ref.extractall('tdata')
+
 
 os.system("pip install opentele")
 from opentele.td import TDesktop
