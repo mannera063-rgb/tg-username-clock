@@ -1,2 +1,1 @@
-opentele==1.1.1
 telethon==1.24.0
