@@ -3,10 +3,9 @@ from datetime import datetime
 
 # Распаковываем официальную сессию tdata, если её еще нет
 if os.path.exists('tdata.zip') and not os.path.exists('tdata'):
- if os.path.exists('tdata.zip') and not os.path.exists('tdata'):
-    with zipfile.ZipFile('tdata.zip', 'r') as zip_ref:
-        zip_ref.extractall('tdata')
-
+if os.path.exists('src/tdata.zip') and not os.path.exists('src/tdata'):
+    with zipfile.ZipFile('src/tdata.zip', 'r') as zip_ref:
+        zip_ref.extractall('src/tdata')
 
 os.system("pip install opentele")
 from opentele.td import TDesktop
@@ -23,7 +22,7 @@ async def update_clock(client):
         await asyncio.sleep(60)
 
 async def main():
-    tdata_path = "tdata"
+tdata_path = "src/tdata"
     td = TDesktop(tdata_path)
     client = await td.ToTelethon(session="session_name.session", flag=None)
     await client.connect()
