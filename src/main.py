@@ -1,4 +1,4 @@
-import os, sys, asyncio, base64
+import os, sys, asyncio
 from datetime import datetime
 from telethon import TelegramClient
 from telethon.sessions import StringSession
@@ -11,9 +11,8 @@ if not session_str:
     print("❌ Ошибка: Переменная TELETHON_SESSION пустая в настройках Render!")
     sys.exit(1)
 
-# Раскодируем нашу строку обратно в имя сессии
-session_name = base64.b64decode(session_str.encode()).decode()
-client = TelegramClient(f'src/{session_name}.session', api_id, api_hash)
+# Запускаем сессию напрямую из нашей сгенерированной текстовой строки
+client = TelegramClient(StringSession(session_str), api_id, api_hash)
 
 async def update_clock():
     while True:
@@ -28,7 +27,7 @@ async def update_clock():
 async def main():
     await client.connect()
     if not await client.is_user_authorized():
-        print("❌ Ошибка: Файл сессии не авторизован сервером Telegram!")
+        print("❌ Ошибка: Сессия не авторизована Telegram! Перегенерируйте строку.")
         return
     print("🚀 Официальные часы успешно запущены в облаке!")
     await update_clock()
